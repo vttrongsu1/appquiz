@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn Tập Trắc Nghiệm Pro - Cyber Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600;800&display=swap');
+        
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-blue: #0066ff;
+            --dark-bg: #050b14;
+            --glass-bg: rgba(10, 20, 35, 0.65);
+            --glass-border: rgba(0, 243, 255, 0.2);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 102, 255, 0.08), transparent 25%);
+            background-attachment: fixed;
+            color: #e2e8f0;
+        }
+
+        h1, h2, .font-cyber {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* --- Glassmorphism & Neon Styles --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue);
+        }
+
+        .neon-border:hover {
+            box-shadow: 0 0 15px var(--neon-cyan) inset, 0 0 15px var(--neon-cyan);
+            border-color: var(--neon-cyan);
+        }
+
+        .btn-cyber {
+            background: linear-gradient(45deg, rgba(0,243,255,0.1), rgba(0,102,255,0.1));
+            border: 1px solid var(--neon-cyan);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-cyber:hover {
+            background: rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-cyber:active {
+            transform: translateY(1px);
+        }
+
+        /* --- 3D Flip Card Styles --- */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        
+        .flip-card-inner {
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .is-flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 243, 255, 0.4); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.8); }
+
+        /* Vùng cuộn ảnh bên trong thẻ */
+        .image-scroll-container {
+            overflow-y: auto;
+            overflow-x: hidden;
+            transform: translateZ(0); 
+            -webkit-transform: translateZ(0);
+        }
+
+        .image-scroll-container img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #imageModal {
+            backdrop-filter: blur(8px);
+        }
+        #modalImage {
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+        }
+    </style>
+    <script src="data.js"></script>
+</head>
+
+<body class="h-screen w-screen overflow-hidden relative">
+
+    <div id="mainScroller" class="w-full h-full overflow-y-auto p-2 md:p-4">
+        
+        <div class="w-full max-w-7xl mx-auto flex flex-col min-h-full">
+            
+            <div id="homeView" class="glass-panel rounded-3xl p-8 md:p-12 transition-all duration-500">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-wider neon-text">LEARNING WITH ME</h1>
+                    <p class="text-cyan-400 font-medium tracking-widest uppercase text-sm">FPT sẽ hỗ trợ bạn</p>
+                </div>
+                
+                <div id="examList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+            </div>
+
+            <div id="quizView" class="hidden flex-col w-full max-w-5xl mx-auto animate-fade-in relative pb-8">
+                
+                <div id="quizHeader" class="flex-shrink-0 flex items-center justify-between glass-panel px-4 py-2 rounded-xl mb-4 mt-2 transition-all duration-300">
+                    <h2 id="currentExamName" class="text-lg md:text-xl font-bold text-cyan-300 font-cyber flex items-center gap-2">
+                        <span class="text-xl">📂</span> <span id="examTitleText">Tên Đề</span>
+                    </h2>
+                    <div class="flex items-center gap-4">
+                        <div id="questionStatus" class="font-cyber text-base font-bold text-white bg-blue-900/50 border border-blue-500/50 px-4 py-1 rounded-lg shadow-[0_0_10px_rgba(0,102,255,0.3)]">
+                            0 / 0
+                        </div>
+                    </div>
+                </div>
+
+                <div class="perspective-1000 w-full relative h-[75vh] min-h-[500px] flex-shrink-0 mb-8">
+                    <div id="flipCard" class="flip-card-inner absolute inset-0 shadow-2xl">
+                        
+                        <div class="flip-card-front glass-panel rounded-2xl p-4 md:p-6 flex flex-col cursor-pointer hover:border-cyan-400/50 transition-colors" onclick="toggleFlip()">
+                            <div class="flex-shrink-0 flex justify-between items-center mb-3 pb-2 border-b border-cyan-500/30">
+                                <span class="text-cyan-400 font-cyber font-bold tracking-widest text-sm uppercase">/// QUESTION_DATA</span>
+                                <span class="text-xs text-slate-400 bg-black/40 px-3 py-1 rounded-full border border-slate-700 hidden md:block">Click / SPACE to flip</span>
+                            </div>
+                            <div id="frontContent" class="image-scroll-container flex-1 min-h-0 pr-2 flex flex-col justify-center">
+                            </div>
+                        </div>
+
+                        <div class="flip-card-back glass-panel rounded-2xl p-4 md:p-6 flex flex-col border-cyan-500/50 cursor-pointer hover:border-emerald-400/50 transition-colors" onclick="toggleFlip()">
+                            <div class="flex-shrink-0 flex justify-between items-center mb-3 pb-2 border-b border-cyan-500/30">
+                                <span class="text-emerald-400 font-cyber font-bold tracking-widest text-sm uppercase">/// SOLUTION_DATA</span>
+                                <span class="text-xs text-slate-400 bg-black/40 px-3 py-1 rounded-full border border-slate-700 hidden md:block">Click / SPACE to return</span>
+                            </div>
+                            <div id="backContent" class="image-scroll-container flex-1 min-h-0 pr-2">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <button id="exitFocusBtn" onclick="toggleFocusMode()" class="hidden absolute top-2 right-2 z-40 bg-red-600/80 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-cyber text-sm tracking-wider shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all">
+                    EXIT FOCUS (ESC)
+                </button>
+
+                <div id="quizControls" class="flex-shrink-0 glass-panel p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 transition-all duration-300">
+                    <div class="flex gap-4 w-full md:w-auto justify-center">
+                        <button onclick="prev()" class="btn-cyber px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-cyan-100 uppercase tracking-wide text-sm w-32 justify-center">
+                            ◀ PREV
+                        </button>
+                        <button onclick="next()" class="btn-cyber px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-cyan-100 uppercase tracking-wide text-sm w-32 justify-center">
+                            NEXT ▶
+                        </button>
+                    </div>
+
+                    <div class="flex gap-4 w-full md:w-auto justify-center">
+                        <button onclick="toggleFlip()" class="w-full md:w-auto bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-8 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all transform active:scale-95 uppercase tracking-widest font-cyber text-sm">
+                            ⟳ FLIP CARD
+                        </button>
+                        
+                        <button onclick="toggleFocusMode()" class="bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 px-6 rounded-xl shadow-[0_0_15px_rgba(202,138,4,0.5)] transition-all transform active:scale-95 uppercase tracking-widest font-cyber text-sm">
+                            🎯 FOCUS (F)
+                        </button>
+                    </div>
+
+                    <div class="flex gap-3 w-full md:w-auto justify-center">
+                        <button onclick="startRandom()" class="px-5 py-2.5 text-purple-300 border border-purple-500/50 hover:bg-purple-900/30 rounded-lg font-medium transition-colors text-sm uppercase tracking-wider">
+                            🔀 Random
+                        </button>
+                        <button onclick="goHome()" class="px-5 py-2.5 text-red-400 border border-red-500/50 hover:bg-red-900/30 rounded-lg font-medium transition-colors text-sm uppercase tracking-wider">
+                            ⏏ Exit
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="fixed inset-0 z-[100] hidden bg-black/90 flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
+        <button onclick="closeModal()" class="absolute top-6 right-8 text-white text-5xl hover:text-red-500 font-cyber z-50 transition-colors cursor-pointer">&times;</button>
+        <img id="modalImage" class="max-w-full max-h-full object-contain rounded-xl" src="">
+    </div>
+
+    <script>
+        let currentExam = null;
+        let questions = [];
+        let index = 0;
+        let isFlipped = false;
+        let isFocusMode = false;
+
+        const TITLE_MAP = { 
+            folderDe: "📝 ĐỀ BÀI", 
+            folderDapan: "✅ ĐÁP ÁN", 
+            folderLoigiai: "📖 LỜI GIẢI CHI TIẾT",
+            folderCode: "💻 MÃ NGUỒN (CODE)",
+            folderHinhanh: "🖼️ HÌNH ẢNH PHỤ TRỢ"
+        };
+
+        function init() {
+            const listDiv = document.getElementById("examList");
+            if (typeof EXAM_LIST === 'undefined' || EXAM_LIST.length === 0) {
+                listDiv.innerHTML = `
+                    <div class='col-span-full text-center glass-panel p-8 rounded-xl border-red-500/50'>
+                        <p class='text-red-400 font-bold font-cyber text-xl mb-2'>ERROR: NO_DATA_FOUND</p>
+                        <p class='text-slate-400'>Vui lòng chạy tool Python để chụp ảnh và sinh file data.js trước!</p>
+                    </div>`;
+                return;
+            }
+
+            EXAM_LIST.forEach(exam => {
+                const btn = document.createElement("button");
+                btn.className = "group glass-panel flex flex-col items-center p-8 rounded-2xl neon-border transition-all duration-300 transform hover:-translate-y-2";
+                btn.innerHTML = `
+                    <div class='text-5xl mb-6 opacity-80 group-hover:opacity-100 transition-opacity filter drop-shadow-[0_0_10px_rgba(0,243,255,0.5)]'>📁</div>
+                    <span class='font-cyber font-bold text-cyan-100 tracking-wider group-hover:text-cyan-400'>${exam.name}</span>
+                    <div class='mt-4 w-12 h-1 bg-cyan-900 group-hover:bg-cyan-400 rounded-full transition-colors shadow-[0_0_10px_rgba(0,243,255,0.5)]'></div>
+                `;
+                btn.onclick = () => selectExam(exam);
+                listDiv.appendChild(btn);
+            });
+        }
+
+        async function selectExam(exam) {
+            currentExam = exam;
+            document.getElementById("homeView").classList.add("hidden");
+            const quizView = document.getElementById("quizView");
+            quizView.classList.remove("hidden");
+            quizView.classList.add("flex");
+            document.getElementById("examTitleText").innerText = exam.name;
+
+            let count = 0;
+            while (true) {
+                const exists = await checkImage(`${exam.folderDe}/${count + 1}.jpg`);
+                if (exists) count++; else break;
+            }
+            
+            questions = Array.from({length: count > 0 ? count : 1}, (_, i) => i + 1);
+            index = 0;
+            loadQuestion();
+        }
+
+        function checkImage(url) {
+            return new Promise(res => {
+                const img = new Image();
+                img.onload = () => res(true);
+                img.onerror = () => res(false);
+                img.src = url;
+            });
+        }
+
+        function loadQuestion() {
+            if(isFlipped) {
+                toggleFlip();
+                setTimeout(renderContent, 400);
+            } else {
+                renderContent();
+            }
+        }
+
+        function toggleFocusMode() {
+            isFocusMode = !isFocusMode;
+            const header = document.getElementById('quizHeader');
+            const controls = document.getElementById('quizControls');
+            const exitBtn = document.getElementById('exitFocusBtn');
+
+            if (isFocusMode) {
+                header.classList.add('hidden');
+                controls.classList.add('hidden');
+                exitBtn.classList.remove('hidden');
+            } else {
+                header.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                exitBtn.classList.add('hidden');
+            }
+        }
+
+        function openModal(src, event) {
+            event.stopPropagation();
+            const modal = document.getElementById('imageModal');
+            document.getElementById('modalImage').src = src;
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        function renderContent() {
+            const front = document.getElementById("frontContent");
+            const back = document.getElementById("backContent");
+            
+            front.innerHTML = "";
+            back.innerHTML = "";
+            
+            const q = questions[index];
+            document.getElementById("questionStatus").innerText = `${index + 1} / ${questions.length}`;
+
+            const folders = Object.keys(currentExam).filter(k => k.startsWith('folder'));
+            const deFolderKey = folders.find(k => k === 'folderDe');
+            const otherFolders = folders.filter(k => k !== 'folderDe');
+
+            // Render Mặt Trước
+            if (deFolderKey) {
+                const imgUrl = `${currentExam[deFolderKey]}/${q}.jpg`;
+                front.innerHTML = `
+                    <div class="w-full h-full flex justify-center items-center">
+                        <img src="${imgUrl}" alt="Question ${q}" 
+                             class="shadow-lg shadow-black/50 cursor-zoom-in transition-transform hover:scale-[1.02]"
+                             style="max-width: 100%; max-height: 65vh; object-fit: contain;"
+                             onclick="openModal('${imgUrl}', event)"
+                             onerror="this.outerHTML='<p class=&quot;text-red-400 font-cyber mt-10 text-center w-full&quot;>[LỖI TẢI ẢNH: ${imgUrl}]</p>'">
+                    </div>`;
+            }
+
+            // Render Mặt Sau
+            if (otherFolders.length === 0) {
+                back.innerHTML = `<p class="text-slate-500 font-cyber italic m-auto mt-10 text-center w-full">NO SOLUTION DATA AVAILABLE</p>`;
+            } else {
+                otherFolders.forEach(key => {
+                    const prefix = key.replace('folder', '').toLowerCase();
+                    const fileName = `${prefix}${q}.jpg`;
+                    const title = TITLE_MAP[key] || `📌 ${prefix.toUpperCase()}`;
+                    
+                    const block = document.createElement("div");
+                    block.className = "w-full bg-black/20 rounded-xl p-4 border border-white/5 mb-6 flex-shrink-0";
+                    block.innerHTML = `
+                        <div class="mb-3 font-bold text-sm text-cyan-300 font-cyber tracking-wider">${title}</div>
+                        <div class="flex justify-center">
+                            <img src="${currentExam[key]}/${fileName}" 
+                                 class="shadow-md shadow-black/40 cursor-zoom-in transition-transform hover:scale-[1.02]" 
+                                 style="max-width: 100%; max-height: 60vh; object-fit: contain;"
+                                 onclick="openModal('${currentExam[key]}/${fileName}', event)"
+                                 onerror="this.outerHTML='<p class=&quot;text-slate-500 italic text-sm my-4&quot;>[Không có ảnh cho phần này]</p>'">
+                        </div>
+                    `;
+                    back.appendChild(block);
+                });
+            }
+        }
+
+        function toggleFlip() {
+            const card = document.getElementById('flipCard');
+            if(isFlipped) {
+                card.classList.remove('is-flipped');
+            } else {
+                card.classList.add('is-flipped');
+            }
+            isFlipped = !isFlipped;
+        }
+
+        function next() { 
+            if (index < questions.length - 1) { 
+                index++; 
+                loadQuestion(); 
+                // Đã xóa lệnh cuộn trang gây khó chịu
+            } 
+        }
+        
+        function prev() { 
+            if (index > 0) { 
+                index--; 
+                loadQuestion(); 
+                // Đã xóa lệnh cuộn trang gây khó chịu
+            } 
+        }
+        
+        function goHome() { location.reload(); }
+        function startRandom() { questions.sort(() => Math.random() - 0.5); index = 0; loadQuestion(); }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                if (!document.getElementById("imageModal").classList.contains("hidden")) {
+                    closeModal();
+                } else if (isFocusMode) {
+                    toggleFocusMode();
+                }
+                return;
+            }
+
+            if (!document.getElementById("imageModal").classList.contains("hidden")) return;
+
+            if (document.getElementById("homeView").classList.contains("hidden")) {
+                if (e.key === "ArrowRight") next();
+                if (e.key === "ArrowLeft") prev();
+                if (e.key === "f" || e.key === "F") toggleFocusMode();
+                if (e.key === " " || e.key === "Enter") { 
+                    e.preventDefault(); 
+                    toggleFlip(); 
+                }
+            }
+        });
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+            .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        `;
+        document.head.appendChild(style);
+
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{
+    "base_save_dir": "C:/Users/DELL/Desktop/de CSD",
+    "last_folder": "De_CSD203",
+    "delay": 0.5,
+    "jpeg_quality": 88,
+    "theme": "dark",
+    "hotkey_start": "n",
+    "hotkey_pause": "m",
+    "next_action": "Right Arrow",
+    "wheel_next": false,
+    "boxes": {
+        "de": {
+            "name": "Đề",
+            "color": "#ff4d4d",
+            "x": 320,
+            "y": 151,
+            "w": 452,
+            "h": 447,
+            "active": true,
+            "prefix": "de"
+        },
+        "dapan": {
+            "name": "Đáp án",
+            "color": "#4da6ff",
+            "x": 850,
+            "y": 150,
+            "w": 400,
+            "h": 450,
+            "active": true,
+            "prefix": "dapan"
+        },
+        "loigiai": {
+            "name": "Lời giải",
+            "color": "#c61aff",
+            "x": 850,
+            "y": 620,
+            "w": 400,
+            "h": 200,
+            "active": false,
+            "prefix": "loigiai"
+        }
+    }
+}
